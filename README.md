@@ -55,20 +55,25 @@ Salesforce → Change Data Capture → Pub/Sub API → Python Client → Your Ap
 ### 2. Installation
 
 ```bash
-git clone https://github.com/david4eva/salesforce-change-data-capture-python.git
-cd salesforce-cdc-python-client
-pip install -r requirements.txt
+# Install required dependencies (from official Salesforce Python quick start)
+pip install grpcio grpcio-tools avro-python3
 ```
 
-### 3. Generate Protocol Buffer Files
+### Generate Protocol Buffer Files
 
 ```bash
-# Download the Salesforce proto file
+# Clone the official Salesforce Pub/Sub API repository
 git clone https://github.com/forcedotcom/pub-sub-api.git
+
+# Copy the proto file to your project
 cp pub-sub-api/pubsub_api.proto proto/
 
-# Generate Python files
+# Generate Python gRPC files (official command from Salesforce docs)
 python -m grpc_tools.protoc -I./proto --python_out=./proto --grpc_python_out=./proto ./proto/pubsub_api.proto
+
+# This generates the required files:
+# - proto/pubsub_api_pb2.py
+# - proto/pubsub_api_pb2_grpc.py
 ```
 
 ### 4. Configuration
@@ -334,11 +339,56 @@ logging:
 
 ### 1. Username/Password (Development)
 
-```yaml
-salesforce:
-  login_url: "https://login.salesforce.com"
-  username: "your-username@example.com"
-  password: "your-password-with-security-token"
+```python
+import requests
+import xml.etree.ElementTree as ET
+
+def get_session_token(username, password, login_url):
+    """Get session token using SOAP login (official Salesforce pattern)"""
+    
+    soap_body = f"""<?xml version="1.0" encoding="utf-8"?>
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+                      xmlns:urn="urn:enterprise.soap.sforce.com">
+       <soapenv:Header/>
+       <soapenv:Body>
+          <urn:login>
+             <urn:username>{username}</urn:username>
+             <urn:password>{password}</urn:password>
+          </urn:login>
+       </soapenv:Body>
+    </soapenv:Envelope>"""
+    
+    headers = {
+        'Content-Type': 'text/xml; charset=UTF-8',
+        'SOAPAction': 'login'
+    }
+    
+    response = requests.post(f"{login_url}/services/Soap/c/59.0/", 
+                           data=soap_body, headers=headers)
+    
+    if response.status_code == 200:
+        root = ET.fromstring(response.content)
+        session_id = root.find('.//{urn:enterprise.soap.sforce.com}sessionId').text
+        server_url = root.find('.//{urn:enterprise.soap.sforce.com}serverUrl').text
+        instance_url = server_url.split('/services')[0]
+        
+        return session_id, instance_url
+    else:
+        raise Exception(f"Login failed: {response.status_code}")
+
+# Usage
+session_id, instance_url = get_session_token(
+    "your-username@example.com",
+    "your-password-with-security-token", 
+    "https://login.salesforce.com"
+)
+
+# Create auth metadata for gRPC
+authmetadata = (
+    ('accesstoken', session_id),
+    ('instanceurl', instance_url),
+    ('tenantid', 'your_org_id')  # Extract from describe or use placeholder
+)
 ```
 
 ### 2. OAuth JWT Bearer (Production Recommended)
@@ -614,43 +664,69 @@ print(f"Average latency: {monitor.average_latency}ms")
 print(f"Error rate: {monitor.error_rate}%")
 ```
 
-## 📈 Production Deployment
+## 🚀 Production Deployment
 
-### Docker Container
+### Background Service (Linux)
 
-```dockerfile
-FROM python:3.9-slim
+```bash
+# Create systemd service
+sudo tee /etc/systemd/system/salesforce-cdc.service > /dev/null <<EOF
+[Unit]
+Description=Salesforce CDC Client
+After=network.target
 
-WORKDIR /app
+[Service]
+Type=simple
+User=cdc-user
+WorkingDirectory=/opt/salesforce-cdc
+ExecStart=/usr/bin/python3 src/cdc_client.py
+Restart=always
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+[Install]
+WantedBy=multi-user.target
+EOF
 
-COPY . .
-
-CMD ["python", "src/cdc_client.py"]
+sudo systemctl enable salesforce-cdc
+sudo systemctl start salesforce-cdc
 ```
 
-### Kubernetes Deployment
+### Process Manager (PM2)
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: salesforce-cdc-client
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: salesforce-cdc-client
-  template:
-    metadata:
-      labels:
-        app: salesforce-cdc-client
-    spec:
-      containers:
-      - name: cdc-client
-        image: your-registry/salesforce-cdc-client:latest
+```bash
+npm install -g pm2
+pm2 start src/cdc_client.py --name salesforce-cdc --interpreter python3
+pm2 startup
+pm2 save
+```
+
+### Virtual Environment Deployment
+
+```bash
+# Production setup
+python3 -m venv /opt/salesforce-cdc/venv
+source /opt/salesforce-cdc/venv/bin/activate
+pip install -r requirements.txt
+
+# Run as daemon
+nohup python src/cdc_client.py > cdc.log 2>&1 &
+```
+
+### Production Considerations
+
+#### Reliability
+- Use systemd or PM2 for automatic restarts
+- Implement proper logging and error handling
+- Store replay IDs persistently for failure recovery
+
+#### Performance
+- Single instance recommended (events must be processed in order)
+- Monitor memory usage for long-running processes
+- Configure appropriate batch sizes based on event volume
+
+#### Security
+- Use OAuth instead of username/password in production
+- Secure credential storage (environment variables or secrets management)
+- Network security for gRPC connectionslesforce-cdc-client:latest
         env:
         - name: SALESFORCE_USERNAME
           valueFrom:
@@ -743,7 +819,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Salesforce](https://developer.salesforce.com/) for the Pub/Sub API and excellent documentation
 - [gRPC](https://grpc.io/) for the robust communication framework
 - The Salesforce developer community for inspiration and feedback
+
+## 📞 Support
+
 - **Documentation**: [Salesforce Change Data Capture Guide](https://developer.salesforce.com/docs/platform/change-data-capture/)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/salesforce-cdc-python-client/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/salesforce-cdc-python-client/discussions)
 
 ## 🗺️ Roadmap
 
