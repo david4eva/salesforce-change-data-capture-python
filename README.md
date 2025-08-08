@@ -55,7 +55,7 @@ Salesforce → Change Data Capture → Pub/Sub API → Python Client → Your Ap
 ### 2. Installation
 
 ```bash
-git clone https://github.com/yourusername/salesforce-cdc-python-client.git
+git clone https://github.com/david4eva/salesforce-change-data-capture-python.git
 cd salesforce-cdc-python-client
 pip install -r requirements.txt
 ```
