@@ -820,14 +820,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [gRPC](https://grpc.io/) for the robust communication framework
 - The Salesforce developer community for inspiration and feedback
 
-## 📞 Support
-
-- **Documentation**: [Salesforce Change Data Capture Guide](https://developer.salesforce.com/docs/platform/change-data-capture/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/salesforce-cdc-python-client/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/salesforce-cdc-python-client/discussions)
-
-## 🗺️ Roadmap
-
 ### Version 2.0 (Coming Soon)
 - [ ] GraphQL subscription support
 - [ ] Built-in event filtering and transformation
