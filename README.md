@@ -816,8 +816,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- [Salesforce](https://developer.salesforce.com/) for the Pub/Sub API and excellent documentation
+- [Salesforce](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/intro.html) for the Pub/Sub API and excellent documentation
 - [gRPC](https://grpc.io/) for the robust communication framework
+- [Trailhead Change Data Capture Module](https://trailhead.salesforce.com/content/learn/modules/change-data-capture) for practical CDC implementation guidance
 - The Salesforce developer community for inspiration and feedback
 
 ### Version 2.0 (Coming Soon)
