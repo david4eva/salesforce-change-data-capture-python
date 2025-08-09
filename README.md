@@ -771,7 +771,7 @@ def monitored_event_handler(event):
 
 ```bash
 # Clone and setup development environment
-git clone https://github.com/yourusername/salesforce-cdc-python-client.git
+git clone https://github.com/david4eva/salesforce-change-data-capture-python.git
 cd salesforce-cdc-python-client
 
 # Create virtual environment
