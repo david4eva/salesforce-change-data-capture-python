@@ -46,11 +46,14 @@ Salesforce → Change Data Capture → Pub/Sub API → Python Client → Your Ap
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
+Prerequisites
 
 - Python 3.8+
 - Salesforce org with Change Data Capture enabled
 - Valid Salesforce credentials
+
+[Python Quick Start for Pub/Sub API](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/qs-python-quick-start.html)
+
 
 ## 📊 Performance Considerations
 
