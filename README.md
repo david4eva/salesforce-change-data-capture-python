@@ -52,8 +52,7 @@ Prerequisites
 - Salesforce org with Change Data Capture enabled
 - Valid Salesforce credentials
 
-## 🚀 Quick Start
-
+### Setup Guide: 
 [Python Quick Start for Pub/Sub API](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/qs-python-quick-start.html)
 
 
