@@ -53,7 +53,7 @@ Prerequisites
 - Valid Salesforce credentials
 
 ### Setup Guide: 
-[Python Quick Start for Pub/Sub API](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/qs-python-quick-start.html)
+- [Python Quick Start for Pub/Sub API](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/qs-python-quick-start.html)
 
 
 ## 📊 Performance Considerations
